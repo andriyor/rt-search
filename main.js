@@ -31,25 +31,25 @@ const RESOURCE_EXCLUSTIONS = ['image', 'media', 'font', 'other'];
         : route.continue()
     });
 
-
     await page.goto('https://russian.rt.com');
 
     await page.click('div.search__submit-top');
     const searchTerm = Array(getRandomInt(2, 6)).fill(1).map(val => randomChoice(words)).join(' ')
-
-    // const uri = `https://russian.rt.com/search?q=${searchTerm}`;
-    // const encoded = encodeURI(uri).replaceAll('%20', '+');
-
-    // page.waitForResponse(async (response) => {
-    //   if (response.url() === encoded && response.status() === 200) {
-    //     console.log('success', response.url());
-    //   }
-    // });
+    const encoded = encodeURIComponent(searchTerm).replaceAll('%20', '+')
 
     await page.type('#search_input_field-top', searchTerm, {delay: 100});
     await page.press('#search_input_field-top', 'Enter');
 
-    await page.waitForLoadState();
-    await page.close();
+    page.on('response', async (response) => {
+      if (response.url().includes(encoded)) {
+        if (response.status() === 200) {
+          console.log('success', response.url());
+        }
+      } else {
+        await page.waitForLoadState('networkidle');
+        await page.close();
+      }
+    });
+
   }
 })();
