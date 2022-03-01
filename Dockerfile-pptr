@@ -1,0 +1,8 @@
+FROM buildkite/puppeteer
+
+WORKDIR /app
+COPY . /app
+COPY ["package.json", "package-lock.json*", "./"]
+RUN npm install
+ENTRYPOINT ["node", "rt-listing-pptr.js"]
+CMD [ "1" ]

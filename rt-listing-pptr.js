@@ -40,7 +40,8 @@ const run = async (browser) => {
 }
 
 puppeteer.launch({
-  headless: false
+  // headless: false,
+  args: ['--no-sandbox']
 }).then(async browser => {
   let tabs = 2;
   const args = process.argv.slice(2);
