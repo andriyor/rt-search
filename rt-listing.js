@@ -11,9 +11,9 @@ const run = async (browser) => {
   const page = await browser.newPage();
 
   const url = `https://russian.rt.com/listing/type.Article.category.${randomChoice(meta['Article'])}/prepare/all-news/${getRandomInt(500, 980)}/0`
-  await page.goto(url);
 
-  return new Promise(resolve => {
+  return new Promise(async resolve => {
+    let fail = 0;
     page.on('response', async (response) => {
       if (response.url() === url) {
         if (response.status() === 200) {
@@ -23,12 +23,18 @@ const run = async (browser) => {
           await page.close();
           resolve()
         } else {
-          console.log('fail');
-          await page.close();
-          resolve()
+          console.log('ddos check');
+          fail += 1
+          await page.waitForNavigation();
+          if (fail === 2) {
+            console.log('fail');
+            await page.close();
+            resolve()
+          }
         }
       }
     });
+    await page.goto(url);
   })
 }
 
