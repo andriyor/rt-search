@@ -1,18 +1,32 @@
 const {chromium} = require('playwright-chromium');
 
+const {getRandomInt, randomChoice} = require("./helper");
+
+const meta = {
+  'Article': ['sport', 'world', 'russia', 'ussr', 'business', 'science', 'nopolitics']
+}
+
+
 const run = async (browser) => {
   const page = await browser.newPage();
 
-  await page.goto('https://russian.rt.com/listing/type.News.tag.novosty-glavnoe/prepare/all-news/999/0');
+  const url = `https://russian.rt.com/listing/type.Article.category.${randomChoice(meta['Article'])}/prepare/all-news/${getRandomInt(500, 980)}/0`
+  await page.goto(url);
 
   return new Promise(resolve => {
     page.on('response', async (response) => {
-      if (response.url() === 'https://russian.rt.com/listing/type.News.tag.novosty-glavnoe/prepare/all-news/999/0' && response.status() === 200) {
-        console.log('success');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(500);
-        await page.close();
-        resolve()
+      if (response.url() === url) {
+        if (response.status() === 200) {
+          console.log('success');
+          await page.waitForLoadState('networkidle');
+          await page.waitForTimeout(500);
+          await page.close();
+          resolve()
+        } else {
+          console.log('fail');
+          await page.close();
+          resolve()
+        }
       }
     });
   })
@@ -21,11 +35,17 @@ const run = async (browser) => {
 (async () => {
   const browser = await chromium.launch(
     {
-      headless: false
+      // headless: false
     }
   );
 
+  let tabs = 2;
+  const args = process.argv.slice(2);
+  if (args[0]) {
+    tabs = Number(args[0])
+  }
+
   while (true) {
-    await Promise.all([run(browser), run(browser)]);
+    await Promise.all(Array(tabs).fill(1).map(v => run(browser)));
   }
 })();
